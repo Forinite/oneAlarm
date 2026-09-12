@@ -180,11 +180,9 @@ const [groups, setGroups] = useState<Group[]>(() =>
 // }, []); also deleted
 
 useEffect(() => {
-  async function syncGroups() {
-    if (!navigator.onLine) {
-      return;
-    }
+  if (!online) return;
 
+  async function syncGroups() {
     const { data, error } = await supabase
       .from("groups")
       .select("id, name")
@@ -195,10 +193,23 @@ useEffect(() => {
       return;
     }
 
-    if (data) {
-      setGroups(data);
-      saveToCache("groups", data);
+    if (!data) return;
+
+    const cachedGroups = loadFromCache<Group[]>("groups", []);
+
+    const cached = JSON.stringify(cachedGroups);
+    const database = JSON.stringify(data);
+
+    // Nothing changed.
+    if (cached === database) {
+      return;
     }
+
+    // Database has changed, so update the cache.
+    saveToCache("groups", data);
+
+    // Update the displayed groups from the new cache.
+    setGroups(data);
   }
 
   syncGroups();
