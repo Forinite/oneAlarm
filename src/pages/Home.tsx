@@ -1,0 +1,621 @@
+//src/pages/Home.tsx
+
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+
+type Note = {
+  id: number;
+  title: string;
+  body: string;
+  updated: string;
+};
+
+type Group = {
+  id: number;
+  name: string;
+}; 
+
+type Alarm = {
+  id: number;
+  group_id: number;
+  label: string;
+  date_time: string;
+};
+
+function saveToCache<T>(key: string, data: T) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error("Error saving to cache:", error);
+  }
+}
+
+function loadFromCache<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+
+    if (!saved) {
+      return fallback;
+    }
+
+    return JSON.parse(saved);
+  } catch (error) {
+    console.error("Error loading from cache:", error);
+    return fallback;
+  }
+}
+
+// const steps = [
+//   "Create the shell",
+//   "Make it installable",
+//   "Make it offline",
+//   "Test the boundary",
+//   "Deploy it",
+// ];
+
+const starterNotes: Note[] = [
+  {
+    id: 1,
+    title: "What makes a PWA?",
+    body: "A manifest, a service worker, and a reliable user experience.",
+    updated: "Today",
+  },
+];
+
+export default function Home() {
+
+const [groups, setGroups] = useState<Group[]>(() =>
+  loadFromCache<Group[]>("groups", [])
+);
+  const [notes, setNotes] = useState<Note[]>(() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem("notes") || "null") ||
+        starterNotes
+      );
+    } catch {
+      return starterNotes;
+    }
+  });
+
+  // const [done, setDone] = useState<number[]>([]);
+  // const [online, setOnline] = useState(navigator.onLine);
+  const [online, setOnline] = useState(() => navigator.onLine);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [joinedGroupIds, setJoinedGroupIds] = useState<number[]>([]);
+  const [activeGroupId, setActiveGroupId] = useState<number | null>(null);
+  const [alarms, setAlarms] = useState<Alarm[]>(() =>
+    loadFromCache<Alarm[]>("alarms", [])
+  );
+  const [alarmLabel, setAlarmLabel] = useState("");
+  const [alarmDateTime, setAlarmDateTime] = useState("");
+  const [currentTime, setCurrentTime] = useState(Date.now());
+
+  // const progress = useMemo(
+  //   () => Math.round((done.length / steps.length) * 100),
+  //   [done]
+  // );
+
+  useEffect(() => {
+    localStorage.setItem("notes", JSON.stringify(notes));
+  }, [notes]);
+
+  useEffect(() => {
+    const on = () => setOnline(true);
+    const off = () => setOnline(false);
+
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
+//   useEffect(() => {
+//   if (!online) return;
+
+//   async function syncData() {
+//     const { data: latestGroups, error: groupsError } = await supabase
+//       .from("groups")
+//       .select("id, name")
+//       .order("name");
+
+//     if (groupsError) {
+//       console.error("Error syncing groups:", groupsError);
+//     } else {
+//       setGroups(latestGroups);
+//       saveToCache("groups", latestGroups);
+//     }
+
+//     if (!activeGroupId) return;
+
+//     const { data: latestAlarms, error: alarmsError } = await supabase
+//       .from("alarms")
+//       .select("id, group_id, label, date_time")
+//       .eq("group_id", activeGroupId)
+//       .order("date_time");
+
+//     if (alarmsError) {
+//       console.error("Error syncing alarms:", alarmsError);
+//       return;
+//     }
+
+//     setAlarms(latestAlarms);
+
+//     const cachedAlarms = loadFromCache<Alarm[]>("alarms", []);
+
+//     const otherAlarms = cachedAlarms.filter(
+//       (alarm) => alarm.group_id !== activeGroupId
+//     );
+
+//     saveToCache("alarms", [...otherAlarms, ...latestAlarms]);
+//   }
+
+//   syncData();
+// }, [online, activeGroupId]); deleted
+
+//   useEffect(() => {
+//   async function loadGroups() {
+//     const { data, error } = await supabase
+//       .from("groups")
+//       .select("id, name")
+//       .order("name");
+
+//     if (error) {
+//       console.error("Error loading groups:", error);
+//       return;
+//     }
+
+//     setGroups(data);
+//     saveToCache("groups", data);
+//   }
+
+//   if (navigator.onLine) {
+//     loadGroups();
+//   }
+// }, []); also deleted
+
+useEffect(() => {
+  async function syncGroups() {
+    if (!navigator.onLine) {
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("groups")
+      .select("id, name")
+      .order("name");
+
+    if (error) {
+      console.error("Error syncing groups:", error);
+      return;
+    }
+
+    if (data) {
+      setGroups(data);
+      saveToCache("groups", data);
+    }
+  }
+
+  syncGroups();
+}, [online]);
+  
+useEffect(() => {
+  async function createUser() {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error) {
+      console.error("Error getting session:", error);
+      return;
+    }
+
+    if (session?.user) {
+      setUserId(session.user.id);
+      return;
+    }
+
+    const { data, error: signInError } =
+      await supabase.auth.signInAnonymously();
+
+    if (signInError) {
+      console.error("Error creating anonymous user:", signInError);
+      return;
+    }
+
+    if (data.user) {
+      setUserId(data.user.id);
+    }
+  }
+
+  createUser();
+}, []);
+
+useEffect(() => {
+  if (!userId) return;
+
+  async function loadJoinedGroups() {
+    const { data, error } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error loading joined groups:", error);
+      return;
+    }
+
+    setJoinedGroupIds(data.map((membership) => membership.group_id));
+  }
+
+  loadJoinedGroups();
+}, [userId]);
+
+useEffect(() => {
+  if (!activeGroupId) {
+    setAlarms([]);
+    return;
+  }
+
+  async function syncAlarms() {
+    // Always start from the locally cached alarms.
+    const cachedAlarms = loadFromCache<Alarm[]>("alarms", []);
+
+    const cachedForGroup = cachedAlarms.filter(
+      (alarm) => alarm.group_id === activeGroupId
+    );
+
+    setAlarms(cachedForGroup);
+
+    // If we're offline, the cached data is all we have.
+    if (!navigator.onLine) {
+      return;
+    }
+
+    // We're online, so get the latest version from Supabase.
+    const { data, error } = await supabase
+      .from("alarms")
+      .select("id, group_id, label, date_time")
+      .eq("group_id", activeGroupId)
+      .order("date_time");
+
+    if (error) {
+      console.error("Error syncing alarms:", error);
+
+      // Keep the cached alarms if Supabase fails.
+      return;
+    }
+
+    if (data) {
+      setAlarms(data);
+
+      // Keep alarms belonging to other groups in the cache.
+      const otherAlarms = cachedAlarms.filter(
+        (alarm) => alarm.group_id !== activeGroupId
+      );
+
+      saveToCache("alarms", [...otherAlarms, ...data]);
+    }
+  }
+
+  syncAlarms();
+}, [activeGroupId, online]);
+
+useEffect(() => {
+  const timer = window.setInterval(() => {
+    setCurrentTime(Date.now());
+  }, 1000);
+
+  return () => {
+    window.clearInterval(timer);
+  };
+}, []);
+
+  function addNote() {
+    if (!title.trim() || !body.trim()) return;
+
+    setNotes([
+      {
+        id: Date.now(),
+        title: title.trim(),
+        body: body.trim(),
+        updated: "Just now",
+      },
+      ...notes,
+    ]);
+
+    setTitle("");
+    setBody("");
+  }
+
+  // function toggleStep(index: number) {
+  //   setDone(
+  //     done.includes(index)
+  //       ? done.filter((x) => x !== index)
+  //       : [...done, index]
+  //   );
+  // }
+
+  async function joinGroup(groupId: number) {
+  if (!userId) {
+    console.error("No user ID available.");
+    return;
+  }
+
+  const { error } = await supabase
+    .from("group_members")
+    .insert({
+      group_id: groupId,
+      user_id: userId,
+    });
+
+  if (error) {
+    if (error.code === "23505") {
+      console.log("Already a member of this group.");
+      setJoinedGroupIds((current) =>
+        current.includes(groupId) ? current : [...current, groupId]
+      );
+      return;
+    }
+
+    console.error("Error joining group:", error);
+    return;
+  }
+
+  setJoinedGroupIds((current) => [...current, groupId]);
+  setActiveGroupId(groupId);
+
+  console.log("Successfully joined group.");
+}
+
+async function addAlarm() {
+  if (!activeGroupId) {
+    console.error("No group selected.");
+    return;
+  }
+
+  if (!alarmLabel.trim() || !alarmDateTime) {
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("alarms")
+    .insert({
+      group_id: activeGroupId,
+      label: alarmLabel.trim(),
+      date_time: new Date(alarmDateTime).toISOString(),
+    })
+    .select("id, group_id, label, date_time")
+    .single();
+
+  if (error) {
+    console.error("Error adding alarm:", error);
+    return;
+  }
+
+if (data) {
+  setAlarms((current) => {
+    const updated = [...current, data].sort(
+      (a, b) =>
+        new Date(a.date_time).getTime() -
+        new Date(b.date_time).getTime()
+    );
+
+    const allCachedAlarms = loadFromCache<Alarm[]>("alarms", []);
+
+    const otherAlarms = allCachedAlarms.filter(
+      (alarm) => alarm.group_id !== activeGroupId
+    );
+
+    saveToCache("alarms", [...otherAlarms, ...updated]);
+
+    return updated;
+  });
+}
+
+  setAlarmLabel("");
+  setAlarmDateTime("");
+}
+
+function getAlarmState(dateTime: string) {
+  const alarmTime = new Date(dateTime).getTime();
+  const oneMinute = 60 * 1000;
+
+  if (currentTime < alarmTime) {
+    return "future";
+  }
+
+  if (currentTime < alarmTime + oneMinute) {
+    return "active";
+  }
+
+  return "past";
+}
+
+
+  return (
+    <div className="shell">
+      <header>
+        <strong>One Alarm</strong>
+        <span>{online ? "Online" : "Offline"}</span>
+      </header>
+
+      <aside>
+
+
+        
+        {/* <p>WORKSHOP MAP</p>
+
+        {steps.map((step, index) => (
+          <button
+            key={step}
+            onClick={() => toggleStep(index)}
+          >
+            {done.includes(index) ? "✓ " : `${index + 1}. `}
+            {step}
+          </button>
+        ))}
+
+        <small>{progress}% complete</small> */}
+
+          <section>
+          <h2>Available Groups</h2>
+
+            {groups.map((group) => {
+              const isJoined = joinedGroupIds.includes(group.id);
+
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => {
+                    if (isJoined) {
+                      setActiveGroupId(group.id);
+                    } else {
+                      joinGroup(group.id);
+                    }
+                  }}
+                >
+                  {group.name} {isJoined ? "✓ Joined" : "Join"}
+                </button>
+              );
+            })}
+        </section>
+      </aside>
+
+      <main>
+        <p className="eyebrow">FOUNDATION TRACK</p>
+
+        {activeGroupId ? (
+          <h1>
+            {groups.find((group) => group.id === activeGroupId)?.name}
+          </h1>
+        ) : (
+          <h1>Select a group to get started.</h1>
+        )}
+
+             {activeGroupId && (
+  <section>
+    <h2>Alarms</h2>
+
+    {alarms.length === 0 ? (
+      <p>No alarms have been added to this group yet.</p>
+    ) : (
+      alarms.map((alarm) => {
+        const state = getAlarmState(alarm.date_time);
+
+        return (
+          <article
+            key={alarm.id}
+            className={`alarm alarm-${state}`}
+          >
+            <h3>
+              {state === "active" && "✓ "}
+              {alarm.label}
+            </h3>
+
+            <p>
+              {new Date(alarm.date_time).toLocaleString()}
+            </p>
+          </article>
+        );
+      })
+    )}
+
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        addAlarm();
+      }}
+    >
+      <h2>Add an alarm</h2>
+
+      <label>
+        Label
+        <input
+          value={alarmLabel}
+          onChange={(event) => setAlarmLabel(event.target.value)}
+          placeholder="e.g. Orientation"
+        />
+      </label>
+
+      <label>
+        Date and time
+        <input
+          type="datetime-local"
+          value={alarmDateTime}
+          onChange={(event) => setAlarmDateTime(event.target.value)}
+        />
+      </label>
+
+      <button style={{backgroundColor: "#1d1d1b", color: "#fff"}} type="submit">Add alarm</button>
+    </form>
+  </section>
+)}
+
+        <div className="author"> 
+          <p>Project By: <i>Obe Fortune Olotu</i> </p>
+          <p>Matric No: <i>2024/1/95114CP</i> </p>
+
+        </div>
+
+        <p className="lede">
+          Save a note, refresh the page, then test the same experience with
+          the network turned off.
+        </p>
+
+        <section className="columns">
+          <div>
+            <h2>Notes from the lab</h2>
+
+            {notes.map((note) => (
+              <article key={note.id}>
+                <h3>{note.title}</h3>
+                <p>{note.body}</p>
+                <small>{note.updated}</small>
+              </article>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              addNote();
+            }}
+          >
+            <h2>Write a note</h2>
+
+            <label>
+              Title
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </label>
+
+            <label>
+              Observation
+              <textarea
+                value={body}
+                onChange={(event) => setBody(event.target.value)}
+                rows={5}
+              />
+            </label>
+
+            <button type="submit">Save locally</button>
+          </form>
+        </section>
+        
+      </main>
+
+
+
+
+    </div>
+  );
+}
