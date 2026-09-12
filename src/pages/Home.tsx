@@ -453,7 +453,7 @@ function getAlarmState(dateTime: string) {
   return (
     <div className="shell">
       <header>
-        <strong>One Alarm</strong>
+        <strong>One Alarm v1</strong>
         <span>{online ? "Online" : "Offline"}</span>
       </header>
 
