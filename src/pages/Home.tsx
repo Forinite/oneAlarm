@@ -33,6 +33,8 @@ function saveToCache<T>(key: string, data: T) {
 function loadFromCache<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(key);
+    console.log('saved: ', saved)
+    console.log('localStorage: ', localStorage)
 
     if (!saved) {
       return fallback;
@@ -115,70 +117,6 @@ const [groups, setGroups] = useState<Group[]>(() =>
     };
   }, []);
 
-//   useEffect(() => {
-//   if (!online) return;
-
-//   async function syncData() {
-//     const { data: latestGroups, error: groupsError } = await supabase
-//       .from("groups")
-//       .select("id, name")
-//       .order("name");
-
-//     if (groupsError) {
-//       console.error("Error syncing groups:", groupsError);
-//     } else {
-//       setGroups(latestGroups);
-//       saveToCache("groups", latestGroups);
-//     }
-
-//     if (!activeGroupId) return;
-
-//     const { data: latestAlarms, error: alarmsError } = await supabase
-//       .from("alarms")
-//       .select("id, group_id, label, date_time")
-//       .eq("group_id", activeGroupId)
-//       .order("date_time");
-
-//     if (alarmsError) {
-//       console.error("Error syncing alarms:", alarmsError);
-//       return;
-//     }
-
-//     setAlarms(latestAlarms);
-
-//     const cachedAlarms = loadFromCache<Alarm[]>("alarms", []);
-
-//     const otherAlarms = cachedAlarms.filter(
-//       (alarm) => alarm.group_id !== activeGroupId
-//     );
-
-//     saveToCache("alarms", [...otherAlarms, ...latestAlarms]);
-//   }
-
-//   syncData();
-// }, [online, activeGroupId]); deleted
-
-//   useEffect(() => {
-//   async function loadGroups() {
-//     const { data, error } = await supabase
-//       .from("groups")
-//       .select("id, name")
-//       .order("name");
-
-//     if (error) {
-//       console.error("Error loading groups:", error);
-//       return;
-//     }
-
-//     setGroups(data);
-//     saveToCache("groups", data);
-//   }
-
-//   if (navigator.onLine) {
-//     loadGroups();
-//   }
-// }, []); also deleted
-
 useEffect(() => {
   if (!online) return;
 
@@ -194,6 +132,7 @@ useEffect(() => {
     }
 
     if (!data) return;
+    if (data?.length == 0) return;
 
     const cachedGroups = loadFromCache<Group[]>("groups", []);
 
@@ -210,6 +149,8 @@ useEffect(() => {
 
     // Update the displayed groups from the new cache.
     setGroups(data);
+    console.log('data: ',data)
+    console.log('cached: ', cached)
   }
 
   syncGroups();
@@ -453,7 +394,7 @@ function getAlarmState(dateTime: string) {
   return (
     <div className="shell">
       <header>
-        <strong>One Alarm v1</strong>
+        <strong>One Alarm v2</strong>
         <span>{online ? "Online" : "Offline"}</span>
       </header>
 
