@@ -207,7 +207,7 @@ useEffect(() => {
   }
 
   loadJoinedGroups();
-}, [userId]);
+}, [userId, online]);
 
 useEffect(() => {
   if (!activeGroupId) {
@@ -237,6 +237,9 @@ useEffect(() => {
       .eq("group_id", activeGroupId)
       .order("date_time");
 
+
+      console.log("fetch data: ", data)
+
     if (error) {
       console.error("Error syncing alarms:", error);
 
@@ -244,6 +247,8 @@ useEffect(() => {
       return;
     }
 
+    console.log("data: ", data)
+    if (data.length == 0) return
     if (data) {
       setAlarms(data);
 
@@ -257,7 +262,7 @@ useEffect(() => {
   }
 
   syncAlarms();
-}, [activeGroupId, online]);
+}, [activeGroupId, online, currentTime]);
 
 useEffect(() => {
   const timer = window.setInterval(() => {
@@ -394,7 +399,7 @@ function getAlarmState(dateTime: string) {
   return (
     <div className="shell">
       <header>
-        <strong>One Alarm v2</strong>
+        <strong>One Alarm v3</strong>
         <span>{online ? "Online" : "Offline"}</span>
       </header>
 
@@ -466,6 +471,7 @@ function getAlarmState(dateTime: string) {
             key={alarm.id}
             className={`alarm alarm-${state}`}
           >
+            hey
             <h3>
               {state === "active" && "✓ "}
               {alarm.label}
