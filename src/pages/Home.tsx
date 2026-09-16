@@ -95,7 +95,7 @@ const [groups, setGroups] = useState<Group[]>(() =>
   const [alarmDateTime, setAlarmDateTime] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
 
-  const Audio = useRef(null)
+  const Audio = useRef<HTMLAudioElement>(null)
 
   
   const handlePlayAudio = () => {
