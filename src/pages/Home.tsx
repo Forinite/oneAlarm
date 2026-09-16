@@ -428,185 +428,220 @@ function getAlarmState(dateTime: string) {
 
 
   return (
-    <div className="shell">
-      <header>
-        <strong>One Alarm v4</strong>
-        <span>{online ? "Online" : "Offline"}</span>
-      </header>
+    
+<div className="shell">
+  <header className="app-header">
+    <div className="header-brand">
+      <strong>One Alarm v4</strong>
+    </div>
 
-      <aside>
+    <span className={`connection-status ${online ? "is-online" : "is-offline"}`}>
+      {online ? "Online" : "Offline"}
+    </span>
+  </header>
 
+  <aside className="sidebar">
+    <section className="groups-section">
+      <h2 className="sidebar-title">Available Groups</h2>
 
-        
-        {/* <p>WORKSHOP MAP</p>
+      <div className="groups-list">
+        {groups.map((group) => {
+          const isJoined = joinedGroupIds.includes(group.id);
 
-        {steps.map((step, index) => (
-          <button
-            key={step}
-            onClick={() => toggleStep(index)}
-          >
-            {done.includes(index) ? "✓ " : `${index + 1}. `}
-            {step}
-          </button>
-        ))}
+          return (
+            <button
+              key={group.id}
+              className={`group-button ${
+                isJoined ? "group-joined" : "group-available"
+              } ${activeGroupId === group.id ? "group-active" : ""}`}
+              onClick={() => {
+                if (isJoined) {
+                  setActiveGroupId(group.id);
+                } else {
+                  joinGroup(group.id);
+                }
+              }}
+            >
+              <span className="group-info">
+                <span className="group-avatar">
+                  {group.name.charAt(0)}
+                </span>
 
-        <small>{progress}% complete</small> */}
+                <span className="group-name">
+                  {group.name}
+                </span>
+              </span>
 
-          <section>
-          <h2>Available Groups</h2>
+              <span className="group-action">
+                {isJoined ? "✓ Joined" : "Join"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  </aside>
 
-            {groups.map((group) => {
-              const isJoined = joinedGroupIds.includes(group.id);
+  <main className="dashboard-main">
+    <div className="dashboard-content">
+      <p className="eyebrow">FOUNDATION TRACK</p>
 
-              return (
-                <button
-                  key={group.id}
-                  onClick={() => {
-                    if (isJoined) {
-                      setActiveGroupId(group.id);
-                    } else {
-                      joinGroup(group.id);
-                    }
-                  }}
-                >
-                  {group.name} {isJoined ? "✓ Joined" : "Join"}
-                </button>
-              );
-            })}
-        </section>
-      </aside>
+      {activeGroupId ? (
+        <h1 className="dashboard-title">
+          {groups.find((group) => group.id === activeGroupId)?.name}
+        </h1>
+      ) : (
+        <h1 className="dashboard-title">
+          Select a group to get started.
+        </h1>
+      )}
 
-      <main>
-        <p className="eyebrow">FOUNDATION TRACK</p>
+      {activeGroupId && (
+        <section className="alarms-section">
+          <div className="section-heading">
+            <div className="section-icon">♧</div>
+            <h2>Alarms</h2>
+          </div>
 
-        {activeGroupId ? (
-          <h1>
-            {groups.find((group) => group.id === activeGroupId)?.name}
-          </h1>
-        ) : (
-          <h1>Select a group to get started.</h1>
-        )}
+          <div className="alarms-list">
+            {alarms.length === 0 ? (
+              <p className="empty-state">
+                No alarms have been added to this group yet.
+              </p>
+            ) : (
+              alarms.map((alarm) => {
+                const state = getAlarmState(alarm.date_time);
 
-             {activeGroupId && (
-  <section>
-    <h2>Alarms</h2>
+                return (
+                  <article
+                    key={alarm.id}
+                    className={`alarm-card alarm-${state}`}
+                  >
+                    <div className="alarm-icon">
+                      {state === "active" ? "✓" : "◷"}
+                    </div>
 
-    {alarms.length === 0 ? (
-      <p>No alarms have been added to this group yet.</p>
-    ) : (
-      alarms.map((alarm) => {
-        const state = getAlarmState(alarm.date_time);
+                    <div className="alarm-content">
+                      <h3>{alarm.label}</h3>
 
-        return (
-          <article
-            key={alarm.id}
-            className={`alarm alarm-${state}`}
-          >
-            <h3>
-              {state === "active" && "✓ "}
-              {alarm.label}
-            </h3>
+                      <p>
+                        {new Date(alarm.date_time).toLocaleString()}
+                      </p>
+                    </div>
 
-            <p>
-              {new Date(alarm.date_time).toLocaleString()}
-            </p>
-          </article>
-        );
-      })
-    )}
+                    <span className="alarm-status">
+                      {state === "active"
+                        ? "Active"
+                        : state === "past"
+                        ? "Overdue"
+                        : "Upcoming"}
+                    </span>
 
-    <form
-      onSubmit={(event) => {
-        event.preventDefault();
-        addAlarm();
-      }}
-    >
-      <h2>Add an alarm</h2>
-
-      <label>
-        Label
-        <input
-          value={alarmLabel}
-          onChange={(event) => setAlarmLabel(event.target.value)}
-          placeholder="e.g. Orientation"
-        />
-      </label>
-
-      <label>
-        Date and time
-        <input
-          type="datetime-local"
-          value={alarmDateTime}
-          onChange={(event) => setAlarmDateTime(event.target.value)}
-        />
-      </label>
-
-      <button style={{backgroundColor: "#1d1d1b", color: "#fff"}} type="submit">Add alarm</button>
-    </form>
-  </section>
-)}
-
-        <div className="author"> 
-          <p>Project By: <i>Obe Fortune Olotu</i> </p>
-          <p>Matric No: <i>2024/1/95114CP</i> </p>
-
-        </div>
-
-        <p className="lede">
-          Save a note, refresh the page, then test the same experience with
-          the network turned off.
-        </p>
-
-        <section className="columns">
-          <div>
-            <h2>Notes from the lab</h2>
-
-            {notes.map((note) => (
-              <article key={note.id}>
-                <h3>{note.title}</h3>
-                <p>{note.body}</p>
-                <small>{note.updated}</small>
-              </article>
-            ))}
+                    <button
+                      type="button"
+                      className="alarm-menu"
+                      aria-label={`Options for ${alarm.label}`}
+                    >
+                      ⋮
+                    </button>
+                  </article>
+                );
+              })
+            )}
           </div>
 
           <form
+            className="add-alarm-form"
             onSubmit={(event) => {
               event.preventDefault();
-              addNote();
+              addAlarm();
             }}
           >
-            <h2>Write a note</h2>
+            <div className="form-heading">
+              <span className="form-heading-icon">+</span>
+              <h2>Add an alarm</h2>
+            </div>
 
-            <audio ref={Audio} src='/audio.mp3' controls loop /> 
-            <button onClick={handlePlayAudio}>Play Audio</button>
+            <div className="form-fields">
+              <label className="form-field">
+                <span>Label</span>
 
-            <label>
-              Title
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-              />
-            </label>
+                <input
+                  className="form-input"
+                  value={alarmLabel}
+                  onChange={(event) =>
+                    setAlarmLabel(event.target.value)
+                  }
+                  placeholder="e.g. Orientation"
+                />
+              </label>
 
-            <label>
-              Observation
-              <textarea
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-                rows={5}
-              />
-            </label>
+              <label className="form-field">
+                <span>Date and time</span>
 
-            <button type="submit">Save locally</button>
+                <input
+                  className="form-input"
+                  type="datetime-local"
+                  value={alarmDateTime}
+                  onChange={(event) =>
+                    setAlarmDateTime(event.target.value)
+                  }
+                />
+              </label>
+            </div>
+
+            <button className="add-alarm-button" type="submit">
+              <span>+</span>
+              Add alarm
+            </button>
           </form>
         </section>
-        
-      </main>
-
-
-
-
+      )}
     </div>
+
+    <div className="dashboard-sidebar">
+      <section className="author-card">
+        <div className="author-icon">◯</div>
+
+        <div className="author-details">
+          <p className="author-label">Project By:</p>
+          <p className="author-name">Obe Fortune Olotu</p>
+        </div>
+
+        <div className="author-divider" />
+
+        <div className="matric-details">
+          <p className="author-label">Matric No:</p>
+          <p className="matric-number">2024/1/95114CP</p>
+        </div>
+      </section>
+
+      <section className="audio-card">
+        <div className="audio-heading">
+          <span className="audio-icon">♫</span>
+          <h2>Audio</h2>
+        </div>
+
+        <audio
+          className="audio-player"
+          ref={Audio}
+          src="/audio.mp3"
+          controls
+          loop
+        />
+
+        <button
+          className="play-audio-button"
+          onClick={handlePlayAudio}
+        >
+          <span>▶</span>
+          Play Audio
+        </button>
+      </section>
+    </div>
+  </main>
+</div>
+
+
   );
 }
