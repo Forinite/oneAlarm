@@ -1,6 +1,6 @@
 //src/pages/Home.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 type Note = {
@@ -94,6 +94,17 @@ const [groups, setGroups] = useState<Group[]>(() =>
   const [alarmLabel, setAlarmLabel] = useState("");
   const [alarmDateTime, setAlarmDateTime] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
+
+  const Audio = useRef(null)
+
+  
+  const handlePlayAudio = () => {
+    // console.log('Audio', Audio)
+    if (!Audio.current) return
+    Audio.current.play()
+  }
+
+
 
   // const progress = useMemo(
   //   () => Math.round((done.length / steps.length) * 100),
@@ -389,17 +400,21 @@ function getAlarmState(dateTime: string) {
   }
 
   if (currentTime < alarmTime + oneMinute) {
+    Audio?.current?.play()
     return "active";
   }
 
+  Audio?.current?.play()
   return "past";
 }
+
+
 
 
   return (
     <div className="shell">
       <header>
-        <strong>One Alarm v3</strong>
+        <strong>One Alarm v4</strong>
         <span>{online ? "Online" : "Offline"}</span>
       </header>
 
@@ -471,7 +486,6 @@ function getAlarmState(dateTime: string) {
             key={alarm.id}
             className={`alarm alarm-${state}`}
           >
-            hey
             <h3>
               {state === "active" && "✓ "}
               {alarm.label}
@@ -547,6 +561,9 @@ function getAlarmState(dateTime: string) {
             }}
           >
             <h2>Write a note</h2>
+
+            <audio ref={Audio} src='/audio.mp3' controls  /> 
+            <button onClick={handlePlayAudio}>Play Audio</button>
 
             <label>
               Title
