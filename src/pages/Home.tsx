@@ -94,13 +94,14 @@ const [groups, setGroups] = useState<Group[]>(() =>
   const [alarmLabel, setAlarmLabel] = useState("");
   const [alarmDateTime, setAlarmDateTime] = useState("");
   const [currentTime, setCurrentTime] = useState(Date.now());
-
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const Audio = useRef<HTMLAudioElement>(null)
 
   
   const handlePlayAudio = () => {
     // console.log('Audio', Audio)
     if (!Audio.current) return
+    setAudioPlaying(true)
     Audio.current.play()
   }
 
@@ -285,6 +286,22 @@ useEffect(() => {
   };
 }, []);
 
+useEffect(() => {
+  if (!audioPlaying) return
+  
+  const timer = window.setInterval(() => {
+    Audio.current?.pause();
+    setAudioPlaying(false);
+
+  }, 60 * 1000);
+
+  return () => {
+    window.clearInterval(timer);
+  };
+
+  
+}, [audioPlaying]);
+
   function addNote() {
     if (!title.trim() || !body.trim()) return;
 
@@ -400,11 +417,10 @@ function getAlarmState(dateTime: string) {
   }
 
   if (currentTime < alarmTime + oneMinute) {
-    Audio?.current?.play()
+    setAudioPlaying(true);
     return "active";
   }
 
-  Audio?.current?.play()
   return "past";
 }
 
@@ -562,7 +578,7 @@ function getAlarmState(dateTime: string) {
           >
             <h2>Write a note</h2>
 
-            <audio ref={Audio} src='/audio.mp3' controls  /> 
+            <audio ref={Audio} src='/audio.mp3' controls loop /> 
             <button onClick={handlePlayAudio}>Play Audio</button>
 
             <label>
