@@ -599,7 +599,7 @@ function getAlarmState(dateTime: string) {
       )}
     </div>
 
-    <div className="dashboard-sidebar">
+    {/* <div className="dashboard-sidebar">
       <section className="author-card">
         <div className="author-icon">◯</div>
 
@@ -638,7 +638,7 @@ function getAlarmState(dateTime: string) {
           Play Audio
         </button>
       </section>
-    </div>
+    </div> */}
   </main>
 </div>
 
