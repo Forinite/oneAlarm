@@ -3,12 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 
-type Note = {
-  id: number;
-  title: string;
-  body: string;
-  updated: string;
-};
 
 type Group = {
   id: number;
@@ -47,44 +41,18 @@ function loadFromCache<T>(key: string, fallback: T): T {
   }
 }
 
-// const steps = [
-//   "Create the shell",
-//   "Make it installable",
-//   "Make it offline",
-//   "Test the boundary",
-//   "Deploy it",
-// ];
 
-const starterNotes: Note[] = [
-  {
-    id: 1,
-    title: "What makes a PWA?",
-    body: "A manifest, a service worker, and a reliable user experience.",
-    updated: "Today",
-  },
-];
+
 
 export default function Home() {
 
 const [groups, setGroups] = useState<Group[]>(() =>
   loadFromCache<Group[]>("groups", [])
 );
-  const [notes, setNotes] = useState<Note[]>(() => {
-    try {
-      return (
-        JSON.parse(localStorage.getItem("notes") || "null") ||
-        starterNotes
-      );
-    } catch {
-      return starterNotes;
-    }
-  });
 
-  // const [done, setDone] = useState<number[]>([]);
-  // const [online, setOnline] = useState(navigator.onLine);
+
   const [online, setOnline] = useState(() => navigator.onLine);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+
   const [userId, setUserId] = useState<string | null>(null);
   const [joinedGroupIds, setJoinedGroupIds] = useState<number[]>([]);
   const [activeGroupId, setActiveGroupId] = useState<number | null>(null);
@@ -104,17 +72,6 @@ const [groups, setGroups] = useState<Group[]>(() =>
     setAudioPlaying(true)
     Audio.current.play()
   }
-
-
-
-  // const progress = useMemo(
-  //   () => Math.round((done.length / steps.length) * 100),
-  //   [done]
-  // );
-
-  useEffect(() => {
-    localStorage.setItem("notes", JSON.stringify(notes));
-  }, [notes]);
 
   useEffect(() => {
     const on = () => setOnline(true);
@@ -302,22 +259,8 @@ useEffect(() => {
   
 }, [audioPlaying]);
 
-  function addNote() {
-    if (!title.trim() || !body.trim()) return;
 
-    setNotes([
-      {
-        id: Date.now(),
-        title: title.trim(),
-        body: body.trim(),
-        updated: "Just now",
-      },
-      ...notes,
-    ]);
 
-    setTitle("");
-    setBody("");
-  }
 
   // function toggleStep(index: number) {
   //   setDone(
