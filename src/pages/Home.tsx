@@ -432,7 +432,7 @@ function getAlarmState(dateTime: string) {
 <div className="shell">
   <header className="app-header">
     <div className="header-brand">
-      <strong>One Alarm v4</strong>
+      <strong>One Alarm v5</strong>
     </div>
 
     <span className={`connection-status ${online ? "is-online" : "is-offline"}`}>
