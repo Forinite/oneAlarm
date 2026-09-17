@@ -27,8 +27,8 @@ function saveToCache<T>(key: string, data: T) {
 function loadFromCache<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(key);
-    console.log('saved: ', saved)
-    console.log('localStorage: ', localStorage)
+    // console.log('saved: ', saved)
+    // console.log('localStorage: ', localStorage)
 
     if (!saved) {
       return fallback;
@@ -244,10 +244,16 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  console.log('Audio Play state: ', audioPlaying)
   if (!audioPlaying) return
+  if (!Audio.current) return
   
+  Audio.current.play()
+  console.log('Audio Play State: ', audioPlaying, 'Starting Timer', Audio.current)
+
   const timer = window.setInterval(() => {
-    Audio.current?.pause();
+    Audio.current.pause();
+    console.log('ending alarm')
     setAudioPlaying(false);
 
   }, 60 * 1000);
@@ -351,6 +357,8 @@ if (data) {
   setAlarmDateTime("");
 }
 
+
+
 function getAlarmState(dateTime: string) {
   const alarmTime = new Date(dateTime).getTime();
   const oneMinute = 60 * 1000;
@@ -360,7 +368,7 @@ function getAlarmState(dateTime: string) {
   }
 
   if (currentTime < alarmTime + oneMinute) {
-    setAudioPlaying(true);
+    !audioPlaying && setAudioPlaying(true);
     return "active";
   }
 
@@ -375,7 +383,7 @@ function getAlarmState(dateTime: string) {
 <div className="shell">
   <header className="app-header">
     <div className="header-brand">
-      <strong>One Alarm v5</strong>
+      <strong>One Alarm v5.1</strong>
     </div>
 
     <span className={`connection-status ${online ? "is-online" : "is-offline"}`}>
@@ -421,6 +429,12 @@ function getAlarmState(dateTime: string) {
             </button>
           );
         })}
+
+        <button onClick={()=> {setActiveGroupId(1)
+          console.log('Group Id: ', activeGroupId)
+        }}>
+            Explore Group 1
+        </button>
       </div>
     </section>
   </aside>
@@ -434,7 +448,7 @@ function getAlarmState(dateTime: string) {
           {groups.find((group) => group.id === activeGroupId)?.name}
         </h1>
       ) : (
-        <h1 className="dashboard-title">
+        <h1 className="dashboard-title" >
           Select a group to get started.
         </h1>
       )}
@@ -447,12 +461,12 @@ function getAlarmState(dateTime: string) {
           </div>
 
           <div className="alarms-list">
-            {alarms.length === 0 ? (
+            {alarms.length === 1 ? (
               <p className="empty-state">
                 No alarms have been added to this group yet.
               </p>
             ) : (
-              alarms.map((alarm) => {
+              [{id:1, group_id:1,label:"Orientation", date_time:"2026-09-17T08:39:00+00:00"}].map((alarm) => {
                 const state = getAlarmState(alarm.date_time);
 
                 return (
@@ -570,7 +584,7 @@ function getAlarmState(dateTime: string) {
         </div>
       </section>
 
-      <section className="audio-card">
+      <section className="audio-card" >
         <div className="audio-heading">
           <span className="audio-icon">♫</span>
           <h2>Audio</h2>
@@ -586,7 +600,9 @@ function getAlarmState(dateTime: string) {
 
         <button
           className="play-audio-button"
-          onClick={handlePlayAudio}
+          onClick={()=>{
+            handlePlayAudio()
+          }}
         >
           <span>▶</span>
           Play Audio
