@@ -252,7 +252,7 @@ useEffect(() => {
   console.log('Audio Play State: ', audioPlaying, 'Starting Timer', Audio.current)
 
   const timer = window.setInterval(() => {
-    Audio.current.pause();
+    Audio.current?.pause();
     console.log('ending alarm')
     setAudioPlaying(false);
 
@@ -383,7 +383,7 @@ function getAlarmState(dateTime: string) {
 <div className="shell">
   <header className="app-header">
     <div className="header-brand">
-      <strong>One Alarm v5.1</strong>
+      <strong>One Alarm v5.1.4</strong>
     </div>
 
     <span className={`connection-status ${online ? "is-online" : "is-offline"}`}>
@@ -430,11 +430,11 @@ function getAlarmState(dateTime: string) {
           );
         })}
 
-        <button onClick={()=> {setActiveGroupId(1)
+        {/* <button onClick={()=> {setActiveGroupId(1)
           console.log('Group Id: ', activeGroupId)
         }}>
             Explore Group 1
-        </button>
+        </button> */}
       </div>
     </section>
   </aside>
@@ -461,12 +461,12 @@ function getAlarmState(dateTime: string) {
           </div>
 
           <div className="alarms-list">
-            {alarms.length === 1 ? (
+            {alarms.length === 0 ? (
               <p className="empty-state">
                 No alarms have been added to this group yet.
               </p>
             ) : (
-              [{id:1, group_id:1,label:"Orientation", date_time:"2026-09-17T08:39:00+00:00"}].map((alarm) => {
+              alarms.map((alarm) => {
                 const state = getAlarmState(alarm.date_time);
 
                 return (
