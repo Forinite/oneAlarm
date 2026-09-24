@@ -27,16 +27,16 @@
     <script >
       addEventListener('load', async () => {
         let sw = await navigator.serviceWorker.register('./sw.js')
-        console.log(sw)
+        console.log('loaded' , sw)
       })
 
-      async function subcribe(){
+      async function subcribe() {
         let sw = await navigator.serviceWorker.ready
         let push = await sw.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: 'BHOKUpO2splGJyFpzURcNyiGbzth4eV4YClxwRv3MYy9JgLoXbFhIoR46jKiFyxXSiRYft9sj2mAxO3BgQdC8Jg'
         })
-        console.log(JSON.stringify(push))
+        console.log('Push subscription:', JSON.stringify(push))
       }
     </script>
   </body>
