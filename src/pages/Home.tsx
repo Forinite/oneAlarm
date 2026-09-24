@@ -265,89 +265,89 @@ useEffect(() => {
   
 }, [audioPlaying]);
 
-useEffect(() => {
-  if (!userId) return;
-  if (!online) return;
+// useEffect(() => {
+//   if (!userId) return;
+//   if (!online) return;
 
-  async function setupPushNotifications() {
-    if (!("serviceWorker" in navigator)) {
-      console.log("Service workers are not supported.");
-      return;
-    }
+//   async function setupPushNotifications() {
+//     if (!("serviceWorker" in navigator)) {
+//       console.log("Service workers are not supported.");
+//       return;
+//     }
 
-    if (!("PushManager" in window)) {
-      console.log("Push notifications are not supported.");
-      return;
-    }
+//     if (!("PushManager" in window)) {
+//       console.log("Push notifications are not supported.");
+//       return;
+//     }
 
-    if (!("Notification" in window)) {
-      console.log("Notifications are not supported.");
-      return;
-    }
+//     if (!("Notification" in window)) {
+//       console.log("Notifications are not supported.");
+//       return;
+//     }
 
-    const permission = await Notification.requestPermission();
+//     const permission = await Notification.requestPermission();
 
-    if (permission !== "granted") {
-      console.log("Notification permission was not granted.");
-      return;
-    }
+//     if (permission !== "granted") {
+//       console.log("Notification permission was not granted.");
+//       return;
+//     }
 
-    const registration =
-      await navigator.serviceWorker.ready;
+//     const registration =
+//       await navigator.serviceWorker.ready;
 
-    let subscription =
-      await registration.pushManager.getSubscription();
+//     let subscription =
+//       await registration.pushManager.getSubscription();
 
-    if (!subscription) {
-      subscription =
-        await registration.pushManager.subscribe({
-          userVisibleOnly: true,
+//     if (!subscription) {
+//       subscription =
+//         await registration.pushManager.subscribe({
+//           userVisibleOnly: true,
 
-          applicationServerKey: urlBase64ToUint8Array(
-            import.meta.env.VITE_VAPID_PUBLIC_KEY
-          ),
-        });
-    }
+//           applicationServerKey: urlBase64ToUint8Array(
+//             import.meta.env.VITE_VAPID_PUBLIC_KEY
+//           ),
+//         });
+//     }
 
-    const subscriptionJSON = subscription.toJSON();
+//     const subscriptionJSON = subscription.toJSON();
 
-    if (
-      !subscriptionJSON.endpoint ||
-      !subscriptionJSON.keys?.p256dh ||
-      !subscriptionJSON.keys?.auth
-    ) {
-      console.error("Invalid push subscription.");
-      return;
-    }
+//     if (
+//       !subscriptionJSON.endpoint ||
+//       !subscriptionJSON.keys?.p256dh ||
+//       !subscriptionJSON.keys?.auth
+//     ) {
+//       console.error("Invalid push subscription.");
+//       return;
+//     }
 
-    const { error } = await supabase
-      .from("push_subscriptions")
-      .upsert(
-        {
-          user_id: userId,
-          endpoint: subscriptionJSON.endpoint,
-          p256dh: subscriptionJSON.keys.p256dh,
-          auth: subscriptionJSON.keys.auth,
-        },
-        {
-          onConflict: "user_id,endpoint",
-        }
-      );
+//     const { error } = await supabase
+//       .from("push_subscriptions")
+//       .upsert(
+//         {
+//           user_id: userId,
+//           endpoint: subscriptionJSON.endpoint,
+//           p256dh: subscriptionJSON.keys.p256dh,
+//           auth: subscriptionJSON.keys.auth,
+//         },
+//         {
+//           onConflict: "user_id,endpoint",
+//         }
+//       );
 
-    if (error) {
-      console.error(
-        "Error saving push subscription:",
-        error
-      );
+//     if (error) {
+//       console.error(
+//         "Error saving push subscription:",
+//         error
+//       );
 
-      return;
-    }
+//       return;
+//     }
 
-    console.log("Push notifications ready.");
-  }
+//     console.log("Push notifications ready.");
+//   }
 
-  setupPushNotifications();
-}, [userId, online]);
+//   setupPushNotifications();
+// }, [userId, online]);
 
 
 function urlBase64ToUint8Array(base64String: string) {
