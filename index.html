@@ -9,7 +9,35 @@
     <title>OneAlarm</title>
   </head>
   <body>
+    <button> subcribe</button>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- <script type="module"> 
+      let reg = await navigator.serviceWorker.register('/sw.js')
+      Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+          console.log('Notification permission granted.');
+        } else {
+          console.log('Notification permission denied.');
+        }
+      });
+    </script> -->
+
+    <button onclick="subcribe()">Subcribe</button>
+    <script >
+      addEventListener('load', async () => {
+        let sw = await navigator.serviceWorker.register('./sw.js')
+        console.log(sw)
+      })
+
+      async function subcribe(){
+        let sw = await navigator.serviceWorker.ready
+        let push = await sw.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: 'BHOKUpO2splGJyFpzURcNyiGbzth4eV4YClxwRv3MYy9JgLoXbFhIoR46jKiFyxXSiRYft9sj2mAxO3BgQdC8Jg'
+        })
+        console.log(JSON.stringify(push))
+      }
+    </script>
   </body>
 </html>

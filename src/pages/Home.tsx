@@ -118,8 +118,8 @@ useEffect(() => {
 
     // Update the displayed groups from the new cache.
     setGroups(data);
-    console.log('data: ',data)
-    console.log('cached: ', cached)
+    //console.log('data: ',data)
+    //console.log('cached: ', cached)
   }
 
   syncGroups();
@@ -207,7 +207,7 @@ useEffect(() => {
       .order("date_time");
 
 
-      console.log("fetch data: ", data)
+      //console.log("fetch data: ", data)
 
     if (error) {
       console.error("Error syncing alarms:", error);
@@ -216,7 +216,7 @@ useEffect(() => {
       return;
     }
 
-    console.log("data: ", data)
+    //console.log("data: ", data)
     if (data.length == 0) return
     if (data) {
       setAlarms(data);
@@ -265,9 +265,109 @@ useEffect(() => {
   
 }, [audioPlaying]);
 
+useEffect(() => {
+  if (!userId) return;
+  if (!online) return;
+
+  async function setupPushNotifications() {
+    if (!("serviceWorker" in navigator)) {
+      console.log("Service workers are not supported.");
+      return;
+    }
+
+    if (!("PushManager" in window)) {
+      console.log("Push notifications are not supported.");
+      return;
+    }
+
+    if (!("Notification" in window)) {
+      console.log("Notifications are not supported.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission !== "granted") {
+      console.log("Notification permission was not granted.");
+      return;
+    }
+
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    let subscription =
+      await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription =
+        await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+
+          applicationServerKey: urlBase64ToUint8Array(
+            import.meta.env.VITE_VAPID_PUBLIC_KEY
+          ),
+        });
+    }
+
+    const subscriptionJSON = subscription.toJSON();
+
+    if (
+      !subscriptionJSON.endpoint ||
+      !subscriptionJSON.keys?.p256dh ||
+      !subscriptionJSON.keys?.auth
+    ) {
+      console.error("Invalid push subscription.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("push_subscriptions")
+      .upsert(
+        {
+          user_id: userId,
+          endpoint: subscriptionJSON.endpoint,
+          p256dh: subscriptionJSON.keys.p256dh,
+          auth: subscriptionJSON.keys.auth,
+        },
+        {
+          onConflict: "user_id,endpoint",
+        }
+      );
+
+    if (error) {
+      console.error(
+        "Error saving push subscription:",
+        error
+      );
+
+      return;
+    }
+
+    console.log("Push notifications ready.");
+  }
+
+  setupPushNotifications();
+}, [userId, online]);
 
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat(
+    (4 - (base64String.length % 4)) % 4
+  );
 
+  const base64 = (
+    base64String +
+    padding
+  )
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map((char) => char.charCodeAt(0))
+  );
+}
   // function toggleStep(index: number) {
   //   setDone(
   //     done.includes(index)
