@@ -116,6 +116,13 @@ self.addEventListener("notificationclick", (event) => {
 
 
 
-self.addEventListener('push', () => {
-  self.registration.sendNotification('text message', {})
+self.addEventListener('push', (event) => {
+  // self.registration.sendNotification('text message', {})
+
+    event.waitUntil(
+    self.registration.showNotification(
+      payload?.title || "One Alarm",
+      {}
+    )
+  );
 })
