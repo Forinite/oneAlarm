@@ -86,33 +86,33 @@ self.addEventListener("fetch", (event) => {
 //   );
 // });
 
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
+// self.addEventListener("notificationclick", (event) => {
+//   event.notification.close();
 
-  if (event.action === "close") {
-    return;
-  }
+//   if (event.action === "close") {
+//     return;
+//   }
 
 
 
-  const url = event.notification.data?.url || "/";
+//   const url = event.notification.data?.url || "/";
 
-  event.waitUntil(
-    clients.matchAll({
-      type: "window",
-      includeUncontrolled: true,
-    }).then((clientList) => {
-      for (const client of clientList) {
-        if ("focus" in client) {
-          client.navigate(url);
-          return client.focus();
-        }
-      }
+//   event.waitUntil(
+//     clients.matchAll({
+//       type: "window",
+//       includeUncontrolled: true,
+//     }).then((clientList) => {
+//       for (const client of clientList) {
+//         if ("focus" in client) {
+//           client.navigate(url);
+//           return client.focus();
+//         }
+//       }
 
-      return clients.openWindow(url);
-    })
-  );
-});
+//       return clients.openWindow(url);
+//     })
+//   );
+// });
 
 
 
@@ -123,7 +123,7 @@ self.addEventListener('push', (event) => {
 
     event.waitUntil(
     self.registration.showNotification(
-      payload?.title || "One Alarm",
+      "One Alarm",
       {}
     )
   );
