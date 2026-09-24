@@ -35,56 +35,56 @@ self.addEventListener("fetch", (event) => {
 });
 
 
-self.addEventListener("push", (event) => {
-  if (!event.data) return;
+// self.addEventListener("push", (event) => {
+//   if (!event.data) return;
 
-  let payload;
+//   let payload;
 
-  try {
-    payload = event.data.json();
-  } catch (error) {
-    console.error("Invalid push payload:", error);
-    return;
-  }
+//   try {
+//     payload = event.data.json();
+//   } catch (error) {
+//     console.error("Invalid push payload:", error);
+//     return;
+//   }
 
-  const alarmTime = payload?.time
-    ? new Date(payload.time).toLocaleString()
-    : "";
+//   const alarmTime = payload?.time
+//     ? new Date(payload.time).toLocaleString()
+//     : "";
 
-  const options = {
-    requireInteraction: true,
+//   const options = {
+//     requireInteraction: true,
 
-    body: `${payload?.title ?? "New Alarm"}${alarmTime ? ` at ${alarmTime}` : ""}`,
+//     body: `${payload?.title ?? "New Alarm"}${alarmTime ? ` at ${alarmTime}` : ""}`,
 
-    icon: "/favicon.svg",
+//     icon: "/favicon.svg",
 
-    badge: "/favicon.svg",
+//     badge: "/favicon.svg",
 
-    data: {
-      url: payload?.url || "/",
-      alarmId: payload?.alarmId,
-      groupId: payload?.groupId,
-    },
+//     data: {
+//       url: payload?.url || "/",
+//       alarmId: payload?.alarmId,
+//       groupId: payload?.groupId,
+//     },
 
-    actions: [
-      {
-        action: "view",
-        title: "View",
-      },
-      {
-        action: "close",
-        title: "Close",
-      },
-    ],
-  };
+//     actions: [
+//       {
+//         action: "view",
+//         title: "View",
+//       },
+//       {
+//         action: "close",
+//         title: "Close",
+//       },
+//     ],
+//   };
 
-  event.waitUntil(
-    self.registration.showNotification(
-      payload?.title || "One Alarm",
-      options
-    )
-  );
-});
+//   event.waitUntil(
+//     self.registration.showNotification(
+//       payload?.title || "One Alarm",
+//       options
+//     )
+//   );
+// });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
@@ -117,6 +117,8 @@ self.addEventListener("notificationclick", (event) => {
 
 
 self.addEventListener('push', (event) => {
+
+  console.log('push detected')
   // self.registration.sendNotification('text message', {})
 
     event.waitUntil(
